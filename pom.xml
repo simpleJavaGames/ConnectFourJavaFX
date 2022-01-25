@@ -36,7 +36,7 @@
                         <!-- Usage: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>org.connectFour.App</mainClass>
+                            <mainClass>FrontEnd.JavaFXFrontEnd</mainClass>
                         </configuration>
                     </execution>
                 </executions>
