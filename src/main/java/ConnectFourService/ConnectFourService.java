@@ -6,9 +6,10 @@ public class ConnectFourService {
     private char[][] connectFourBoard = new char[6][7];
     private boolean yellowTurn;
     private boolean isGameRunning;
+    private int numPiecesOut = 0;
 
     /**
-     * Default constructor that sets the inital player turn to yellow.
+     * Default constructor that sets the initial player turn to yellow.
      */
     public ConnectFourService(){
         yellowTurn = true;
@@ -47,7 +48,8 @@ public class ConnectFourService {
         }else{
             connectFourBoard[rowPos][colPos] = 'R';
         }
-        nextTurn();
+        numPiecesOut++; //Increment the number of pieces out.
+        nextTurn(); //Make it the next player's turn.
     }
 
     /**
@@ -71,7 +73,7 @@ public class ConnectFourService {
             int nextAvailableRow = nextAvailablePosition(colPos);
             putPiece(nextAvailableRow,colPos);
             if(isWinnerMultiThread(nextAvailableRow,colPos)) return true; // if we have a winner, return true, else continue on.
-            isGameRunning = !isCompletelyFull(); //if the board is full, end the game, else continue. //todo make this so it actually counts num pieces out.
+            isGameRunning = !isCompletelyFull(); //if the board is full, end the game, else continue.
             return true; //if we made it here, the piece drop was valid.
         }catch (ColumnFullException e){
             //we messed up, and we tried to put a piece in a column that was full!
@@ -88,15 +90,10 @@ public class ConnectFourService {
     }
 
     /**
-     * This method returns true if the board is completely full.
+     * This method returns true if the board is completely full(if there are 42 pieces out, we know the board is full.)
      */
     public boolean isCompletelyFull(){
-        for(int i=0;i<connectFourBoard.length;i++){
-            for(int j=0;j< connectFourBoard[1].length;j++){
-                if(connectFourBoard[i][j] == '\u0000') return false; //if the slot is null, return false.
-            }
-        }
-        return true;
+        return (numPiecesOut >= 42);
     }
 
     /**
