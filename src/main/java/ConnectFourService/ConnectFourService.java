@@ -63,14 +63,14 @@ public class ConnectFourService {
     }
 
     /**
-     * This method will drop a piece at the selected column, will return true if succesful.
+     * This method will drop a piece at the selected column, will return true if successful.
      * Will return false if unsuccessful.
      */
     public boolean dropPiece(int colPos){
         try{
             int nextAvailableRow = nextAvailablePosition(colPos);
             putPiece(nextAvailableRow,colPos);
-            if(isWinner(nextAvailableRow,colPos)) return true; // if we have a winner, return true, else continue on.
+            if(isWinnerMultiThread(nextAvailableRow,colPos)) return true; // if we have a winner, return true, else continue on.
             isGameRunning = !isCompletelyFull(); //if the board is full, end the game, else continue. //todo make this so it actually counts num pieces out.
             return true; //if we made it here, the piece drop was valid.
         }catch (ColumnFullException e){
@@ -100,12 +100,27 @@ public class ConnectFourService {
     }
 
     /**
-     * This method calls all the other smaller methods to check to see if there is a winner.
+     * This multithreaded method calls all the other smaller methods to check to see if there is a winner.
      * Returns true is there is a winner, else false.
      */
-    //todo make this multithreaded.
-    public boolean isWinner(int rowPos,int colPos){
-        return (isWinnerHorizontal(rowPos) || isWinnerVertical(colPos) || isWinnerDiagonal(rowPos,colPos));
+    //todo test this to make sure that it functions properly.
+    public boolean isWinnerMultiThread(int rowPos, int colPos){
+        final boolean[] isWinnerHorizontal = new boolean[1];
+        new Thread(() -> isWinnerHorizontal[0] = isWinnerHorizontal(rowPos)).start();
+
+        final boolean[] isWinnerVertical = new boolean[1];
+        new Thread(()-> isWinnerVertical[0] = isWinnerVertical(colPos)).start();
+
+        final boolean[] isWinnerPositiveDiagonal = new boolean[1];
+        new Thread(()-> isWinnerPositiveDiagonal[0] =isWinnerPositiveDiagonal(rowPos, colPos)).start();
+
+        final boolean[] isWinnerNegativeDiagonal = new boolean[1];
+        new Thread(()-> isWinnerNegativeDiagonal[0] = isWinnerNegativeDiagonal(rowPos, colPos)).start();
+        return (isWinnerHorizontal[0] || isWinnerVertical[0] || isWinnerPositiveDiagonal[0] || isWinnerNegativeDiagonal[0]);
+    }
+
+    public boolean isWinnerNotMultiThread(int rowPos, int colPos){
+        return (isWinnerHorizontal(rowPos) || isWinnerVertical(colPos) || isWinnerDiagonal(rowPos, colPos));
     }
 
     /**
