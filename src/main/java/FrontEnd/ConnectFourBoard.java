@@ -1,12 +1,16 @@
 package FrontEnd;
 
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Shape;
 
 
 public class ConnectFourBoard {
@@ -25,6 +29,18 @@ public class ConnectFourBoard {
                 StackPane cell = createCell(scene); //todo test
                 connectFourBoard.add(cell,j,i);
                 connectFourBoardNodes[i][j] = cell;
+
+                if(i==0){ //initialize the first row to have mouse hover handlers.
+                    connectFourBoardNodes[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
+                        @Override
+                        public void handle(MouseEvent event) {
+                            if(event.isPrimaryButtonDown()){
+                                //todo add drop piece.
+                            }
+                        }
+                    });
+                }
+
             }
         }
         connectFourBoard.setAlignment(Pos.CENTER);
@@ -40,7 +56,7 @@ public class ConnectFourBoard {
         cell.setAlignment(Pos.CENTER);
         cell.setStyle("-fx-background-color: Blue");
 
-        piece.setFill(Color.YELLOW);
+        piece.setFill(Color.DARKGREEN); //default this to the same color as background.
         piece.setRadius(50);
         piece.radiusProperty().bind(scene.heightProperty().divide(16)); //This method make it so that the boxes scale with window size.
 
