@@ -3,8 +3,9 @@ package FrontEnd;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Circle;
 
 
 public class ConnectFourBoard {
@@ -19,23 +20,27 @@ public class ConnectFourBoard {
     ConnectFourBoard(Scene scene){
         for(int i=0;i<NUMCOLUMN;i++){
             for(int j=0;j<NUMROW;j++){
-                Rectangle cell = createCell(scene);
-                connectFourBoard.add(cell,i,j);
+                 StackPane piece = createCell(scene);
+                connectFourBoard.add(piece,i,j);
             }
         }
         connectFourBoard.setAlignment(Pos.CENTER);
     }
 
     /**
-     * Creates a "cell" for each connect four board spot and returns it.
+     * Creates a StackPane "cell" for each connect four board spot and returns it.
      */
-    private Rectangle createCell(Scene scene){
-        Rectangle cell = new Rectangle();
-        cell.setFill(Color.BLUE);
-        cell.setWidth(50);
-        cell.setHeight(50);
-        cell.widthProperty().bind(scene.heightProperty().divide(8)); //These 2 methods make it so that the boxes scale with window size.
-        cell.heightProperty().bind(scene.heightProperty().divide(8));
+    private StackPane createCell(Scene scene){
+        StackPane cell = new StackPane();
+        Circle piece = new Circle();
+        cell.getChildren().add(piece);
+        cell.setAlignment(Pos.CENTER);
+        cell.setStyle("-fx-background-color: Black");
+
+        piece.setFill(Color.BLUE);
+        piece.setRadius(50);
+        piece.radiusProperty().bind(scene.heightProperty().divide(16)); //This method make it so that the boxes scale with window size.
+
         return cell;
     }
 
