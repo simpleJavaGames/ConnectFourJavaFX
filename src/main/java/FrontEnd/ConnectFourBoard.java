@@ -1,6 +1,7 @@
 package FrontEnd;
 
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
@@ -10,6 +11,7 @@ import javafx.scene.shape.Circle;
 
 public class ConnectFourBoard {
     private final GridPane connectFourBoard = new GridPane();//final since we're not changing its pointer.
+    private final Node[][] connectFourBoardNodes = new Node[NUMROW][NUMCOLUMN]; //this is for easily modifying all the nodes in the gridpane.
     private static final int NUMROW = 6;
     private static final int NUMCOLUMN = 7;
 
@@ -18,10 +20,11 @@ public class ConnectFourBoard {
      * Default constructor that initializes all the cells in the connect-four board, and then sets its alignment to centered.
      */
     ConnectFourBoard(Scene scene){
-        for(int i=0;i<NUMCOLUMN;i++){
-            for(int j=0;j<NUMROW;j++){
-                 StackPane piece = createCell(scene);
-                connectFourBoard.add(piece,i,j);
+        for(int i=0;i<NUMROW;i++){
+            for(int j=0;j<NUMCOLUMN;j++){
+                StackPane cell = createCell(scene); //todo test
+                connectFourBoard.add(cell,j,i);
+                connectFourBoardNodes[i][j] = cell;
             }
         }
         connectFourBoard.setAlignment(Pos.CENTER);
@@ -35,14 +38,15 @@ public class ConnectFourBoard {
         Circle piece = new Circle();
         cell.getChildren().add(piece);
         cell.setAlignment(Pos.CENTER);
-        cell.setStyle("-fx-background-color: Black");
+        cell.setStyle("-fx-background-color: Blue");
 
-        piece.setFill(Color.BLUE);
+        piece.setFill(Color.YELLOW);
         piece.setRadius(50);
         piece.radiusProperty().bind(scene.heightProperty().divide(16)); //This method make it so that the boxes scale with window size.
 
         return cell;
     }
+
 
     /**
      * Get a pointer towards the connect-four board object.
