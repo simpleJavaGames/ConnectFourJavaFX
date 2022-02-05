@@ -17,8 +17,10 @@ public class ConnectFourBoard {
     private final ConnectFourService connectFourService = new ConnectFourService();
 
 
+
     private final GridPane connectFourBoard = new GridPane();//final since we're not changing its pointer.
     private final Node[][] connectFourBoardNodes = new Node[NUMROW][NUMCOLUMN]; //this is for easily modifying all the nodes in the gridpane.
+    private final Circle[][] connectFourBoardCircles = new Circle[NUMROW][NUMCOLUMN]; // THis is for ease of access of the circle nodes which are inside the Stackpane inside of the GP.
     private static final int NUMROW = 6;
     private static final int NUMCOLUMN = 7;
 
@@ -30,7 +32,7 @@ public class ConnectFourBoard {
     ConnectFourBoard(Scene scene){
         for(int i=0;i<NUMROW;i++){
             for(int j=0;j<NUMCOLUMN;j++){
-                StackPane cell = createCell(scene); //todo test
+                StackPane cell = createCell(scene,i,j); //todo test
                 connectFourBoard.add(cell,j,i);
                 connectFourBoardNodes[i][j] = cell;
 
@@ -65,15 +67,20 @@ public class ConnectFourBoard {
     /**
      * Creates a StackPane "cell" for each connect four board spot and returns it.
      */
-    private StackPane createCell(Scene scene){
+    private StackPane createCell(Scene scene,int rowPos,int colPos){
         StackPane cell = new StackPane();
         Circle piece = new Circle();
+
+        connectFourBoardCircles[rowPos][colPos] = piece; //put a pointer to each circle object for easy modification to their color.
+
         cell.getChildren().add(piece);
         cell.setAlignment(Pos.CENTER);
-        cell.setStyle("-fx-background-color: Blue");
+        cell.setStyle("-fx-background-color: DODGERBLUE"); //MAKE SURE THAT THIS ALIGNS WITH THE STROKE WE SET THE PIECE AS.
 
         piece.setFill(Color.DARKGREEN); //default this to the same color as background.
         piece.setRadius(50);
+        piece.setStroke(Color.DODGERBLUE);
+        piece.setStrokeWidth(7);
         piece.radiusProperty().bind(scene.heightProperty().divide(16)); //This method make it so that the boxes scale with window size.
 
         return cell;
