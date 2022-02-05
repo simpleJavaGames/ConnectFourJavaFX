@@ -37,6 +37,14 @@ public class ConnectFourService {
         }
     }
 
+    public boolean isColumnCompletelyFull(int colPos){
+        if(connectFourBoard[0][colPos] == '\u0000'){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
     /**
      * Puts the specified piece in the spot and then changes the turn to the next one.
      * DO NOT CALL THIS METHOD.
@@ -220,6 +228,13 @@ public class ConnectFourService {
         }
 
         return false;
+    }
+
+    /**
+     * Get the connectFourBoard object.
+     */
+    public char[][] getConnectFourBoard() {
+        return connectFourBoard;
     }
 
 }
