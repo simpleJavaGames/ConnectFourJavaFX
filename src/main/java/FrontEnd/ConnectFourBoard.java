@@ -1,8 +1,10 @@
 package FrontEnd;
 
 import ConnectFourService.ConnectFourService;
+import Exceptions.ColumnFullException;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseButton;
@@ -46,8 +48,37 @@ public class ConnectFourBoard {
                         @Override
                         public void handle(MouseEvent event) {
                             if(event.getButton() == MouseButton.PRIMARY){
-                                connectFourBoardCircles[rowPos][colPos].setFill(Color.DARKGREEN); //little trick to clear the hovered piece.
-                                connectFourService.dropPiece(colPos);
+
+                                //This thread makes it so that whenever a player places a piece, it sets the piece to green and then shows the next player's piece.
+                                new Thread(()->{
+                                    if(!connectFourService.isColumnCompletelyFull(colPos)){ //if the column is not completely full, then show that piece.
+                                        connectFourBoardCircles[rowPos][colPos].setFill(Color.DARKGREEN);
+                                        try{
+                                            Thread.sleep(10);
+                                        }catch (InterruptedException e){
+                                            System.out.println("Thread in connectFourBoard mouseClicked handler failed.");
+                                        }
+                                        if(connectFourService.isYellowTurn()){
+                                            connectFourBoardCircles[rowPos][colPos].setFill(Color.YELLOW);
+                                        }else{
+                                            connectFourBoardCircles[rowPos][colPos].setFill(Color.RED);
+                                        }
+                                    }
+                                }).start(); //little trick to clear the hovered piece
+
+                                try{
+                                    int[] newPiece = connectFourService.dropPiece(colPos);
+                                    if(!connectFourService.isYellowTurn()){
+                                        connectFourBoardCircles[newPiece[0]][newPiece[1]].setFill(Color.YELLOW);
+                                    }else{
+                                        connectFourBoardCircles[newPiece[0]][newPiece[1]].setFill(Color.RED);
+                                    }
+                                }catch (ColumnFullException e){
+                                    //we messed up, and we tried to put a piece in a column that was full!
+                                    System.out.println(e.getMessage()); //todo REMOVE THIS DUG MESSAGE later.
+                                }
+
+
                             }
                         }
                     });
@@ -57,8 +88,7 @@ public class ConnectFourBoard {
                         public void handle(MouseEvent event) {
                             //todo check if the spot is empty and if it is, hover a piece there to indicate where it's being dropped.
                             if(!connectFourService.isColumnCompletelyFull(colPos)){ //if the column is not completely full, then show that piece.
-                                boolean yellowTurn = connectFourService.isYellowTurn();
-                                if(yellowTurn){
+                                if(connectFourService.isYellowTurn()){
                                     connectFourBoardCircles[rowPos][colPos].setFill(Color.YELLOW);
                                 }else{
                                     connectFourBoardCircles[rowPos][colPos].setFill(Color.RED);
