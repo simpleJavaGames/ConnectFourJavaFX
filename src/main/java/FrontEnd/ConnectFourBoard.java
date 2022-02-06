@@ -5,6 +5,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
@@ -15,7 +16,6 @@ import javafx.scene.shape.Circle;
 public class ConnectFourBoard {
 
     private final ConnectFourService connectFourService = new ConnectFourService();
-
 
 
     private final GridPane connectFourBoard = new GridPane();//final since we're not changing its pointer.
@@ -36,24 +36,42 @@ public class ConnectFourBoard {
                 connectFourBoard.add(cell,j,i);
                 connectFourBoardNodes[i][j] = cell;
 
-                if(i==0){ //initialize the first row to have mouse hover handlers.
+
+                //initialize the first row to have mouse hover handlers and mouse click handlers as to play the game.
+                if(i==0){
+                    //temp variable to set the colPos
+                    int colPos = j;
+                    int rowPos = i; //we could set this to 0 to save time, but why bother, could lead to problems.
                     connectFourBoardNodes[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
                         @Override
                         public void handle(MouseEvent event) {
-                            if(event.isPrimaryButtonDown()){
-                                //todo add drop piece.
+                            if(event.getButton() == MouseButton.PRIMARY){
+                                connectFourBoardCircles[rowPos][colPos].setFill(Color.DARKGREEN); //little trick to clear the hovered piece.
+                                connectFourService.dropPiece(colPos);
                             }
                         }
                     });
 
-                    //temp variable to set the colPos
-                    int colPos = j;
-                    connectFourBoardNodes[i][j].setOnMouseEntered(new EventHandler<MouseEvent>() {
+                    connectFourBoardNodes[rowPos][colPos].setOnMouseEntered(new EventHandler<MouseEvent>() {
                         @Override
                         public void handle(MouseEvent event) {
                             //todo check if the spot is empty and if it is, hover a piece there to indicate where it's being dropped.
                             if(!connectFourService.isColumnCompletelyFull(colPos)){ //if the column is not completely full, then show that piece.
+                                boolean yellowTurn = connectFourService.isYellowTurn();
+                                if(yellowTurn){
+                                    connectFourBoardCircles[rowPos][colPos].setFill(Color.YELLOW);
+                                }else{
+                                    connectFourBoardCircles[rowPos][colPos].setFill(Color.RED);
+                                }
+                            }
+                        }
+                    });
 
+                    connectFourBoardNodes[rowPos][colPos].setOnMouseExited(new EventHandler<MouseEvent>() {
+                        @Override
+                        public void handle(MouseEvent event) {
+                            if(!connectFourService.isColumnCompletelyFull(colPos)){
+                                connectFourBoardCircles[rowPos][colPos].setFill(Color.DARKGREEN);
                             }
                         }
                     });
