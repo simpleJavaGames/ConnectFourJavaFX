@@ -3,6 +3,8 @@ package ConnectFourService;
 import Exceptions.ColumnFullException;
 
 public class ConnectFourService {
+    //todo clean up the back-end.
+    //todo make it so that the winner check actually works.
     private char[][] connectFourBoard = new char[6][7];
     private boolean yellowTurn;
     private boolean isGameRunning;
@@ -62,8 +64,9 @@ public class ConnectFourService {
 
     /**
      * This method will find the next row position that is available when the piece is dropped.
+     * This method is also the one that checks to make sure that the move is actually legal.
      */
-    public int nextAvailablePosition(int colPos) throws ColumnFullException{
+    public int nextAvailableRow(int colPos) throws ColumnFullException{
         //This will start going through all the rows as length of 2D array is height, [1].length would be width.
         for(int i= connectFourBoard.length-1;i>=0;i--){
             if(connectFourBoard[i][colPos] == '\u0000') return i;
@@ -76,18 +79,18 @@ public class ConnectFourService {
      * This method will drop a piece at the selected column, will return true if successful.
      * Will return false if unsuccessful.
      */
-    public boolean dropPiece(int colPos){
-        try{
-            int nextAvailableRow = nextAvailablePosition(colPos);
-            putPiece(nextAvailableRow,colPos);
-            if(isWinnerMultiThread(nextAvailableRow,colPos)) return true; // if we have a winner, return true, else continue on.
-            isGameRunning = !isCompletelyFull(); //if the board is full, end the game, else continue.
-            return true; //if we made it here, the piece drop was valid.
-        }catch (ColumnFullException e){
-            //we messed up, and we tried to put a piece in a column that was full!
-            System.out.println(e.getMessage()); //todo REMOVE THIS DUG MESSAGE later.
-            return false;
+    //TODO refactor this shit.
+    public int[] dropPiece(int colPos) throws ColumnFullException{
+
+        int nextAvailableRow = nextAvailableRow(colPos);
+        putPiece(nextAvailableRow,colPos); //This method can throw a columnFullException.
+        if(isWinnerMultiThread(nextAvailableRow,colPos)){// if we have a winner, return true, else continue on.
+            System.out.println("GAME OVER");
+            isGameRunning = false;
         }
+        isGameRunning = !isCompletelyFull(); //if the board is full, end the game, else continue.
+        return new int[]{nextAvailableRow,colPos}; //return where the new piece was placed so that we can update it in the GUI.
+
     }
 
     /**
