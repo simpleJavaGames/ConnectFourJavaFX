@@ -44,6 +44,7 @@ public class ConnectFourBoard {
                     //temp variable to set the colPos
                     int colPos = j;
                     int rowPos = i; //we could set this to 0 to save time, but why bother, could lead to problems.
+                    //todo refactor so we see who wins, and what pieces allowed them to win and we're donne with implementation.
                     connectFourBoardNodes[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
                         @Override
                         public void handle(MouseEvent event) {
@@ -72,6 +73,9 @@ public class ConnectFourBoard {
                                         connectFourBoardCircles[newPiece[0]][newPiece[1]].setFill(Color.YELLOW);
                                     }else{
                                         connectFourBoardCircles[newPiece[0]][newPiece[1]].setFill(Color.RED);
+                                    }
+                                    if(!connectFourService.getIsGameRunning()){
+                                        System.out.println("Game over.");
                                     }
                                 }catch (ColumnFullException e){
                                     //we messed up, and we tried to put a piece in a column that was full!

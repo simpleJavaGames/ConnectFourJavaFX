@@ -79,18 +79,42 @@ public class ConnectFourService {
      * This method will drop a piece at the selected column, will return true if successful.
      * Will return false if unsuccessful.
      */
-    //TODO refactor this shit.
     public int[] dropPiece(int colPos) throws ColumnFullException{
 
         int nextAvailableRow = nextAvailableRow(colPos);
         putPiece(nextAvailableRow,colPos); //This method can throw a columnFullException.
         if(isWinnerMultiThread(nextAvailableRow,colPos)){// if we have a winner, return true, else continue on.
-            System.out.println("GAME OVER");
+            isGameRunning = false;
+        }else if(isCompletelyFull()){
+            //if the board is full, end the game, else continue.
             isGameRunning = false;
         }
-        isGameRunning = !isCompletelyFull(); //if the board is full, end the game, else continue.
         return new int[]{nextAvailableRow,colPos}; //return where the new piece was placed so that we can update it in the GUI.
 
+    }
+
+    /**
+     * Debug method that prints the current board to the console.
+     */
+    @Override
+    public String toString() {
+        String to_return="  0   1   2   3   4   5   6";
+        for(int i=0;i<6;i++) {
+            to_return+="\n-----------------------------\n ";
+            to_return+="| ";
+            for(int j=0;j<7;j++) {
+                to_return+=connectFourBoard[i][j]+" | ";
+            }
+        }
+        to_return+="\n-----------------------------\n";
+        return to_return;
+    }
+
+    /**
+     * Getter to ensure that the game is not over.
+     */
+    public boolean getIsGameRunning() {
+        return isGameRunning;
     }
 
     /**
@@ -114,16 +138,46 @@ public class ConnectFourService {
     //todo test this to make sure that it functions properly.
     public boolean isWinnerMultiThread(int rowPos, int colPos){
         final boolean[] isWinnerHorizontal = new boolean[1];
-        new Thread(() -> isWinnerHorizontal[0] = isWinnerHorizontal(rowPos)).start();
+        Thread horizontal = new Thread(() -> isWinnerHorizontal[0] = isWinnerHorizontal(rowPos));
+        horizontal.start();
 
         final boolean[] isWinnerVertical = new boolean[1];
-        new Thread(()-> isWinnerVertical[0] = isWinnerVertical(colPos)).start();
+        Thread vertical = new Thread(()-> isWinnerVertical[0] = isWinnerVertical(colPos));
+        vertical.start();
 
         final boolean[] isWinnerPositiveDiagonal = new boolean[1];
-        new Thread(()-> isWinnerPositiveDiagonal[0] =isWinnerPositiveDiagonal(rowPos, colPos)).start();
+        Thread positiveDiagonal = new Thread(()-> isWinnerPositiveDiagonal[0] =isWinnerPositiveDiagonal(rowPos, colPos));
+        positiveDiagonal.start();
 
         final boolean[] isWinnerNegativeDiagonal = new boolean[1];
-        new Thread(()-> isWinnerNegativeDiagonal[0] = isWinnerNegativeDiagonal(rowPos, colPos)).start();
+        Thread negativeDiagonal = new Thread(()-> isWinnerNegativeDiagonal[0] = isWinnerNegativeDiagonal(rowPos, colPos));
+        negativeDiagonal.start();
+
+        //thread joins to ensure that all the checks are done before we say anything.
+        try{
+            horizontal.join();
+        }catch (InterruptedException e){
+            System.out.println("Horizontal join in isWinnerMultiThread was interrupted.");
+        }
+
+        try{
+            vertical.join();
+        }catch (InterruptedException e){
+            System.out.println("vertical join in isWinnerMultiThread was interrupted.");
+        }
+
+        try{
+            negativeDiagonal.join();
+        }catch (InterruptedException e){
+            System.out.println("negDiagonal join in isWinnerMultiThread was interrupted.");
+        }
+
+        try{
+            positiveDiagonal.join();
+        }catch (InterruptedException e){
+            System.out.println("posDiagonal join in isWinnerMultiThread was interrupted.");
+        }
+
         return (isWinnerHorizontal[0] || isWinnerVertical[0] || isWinnerPositiveDiagonal[0] || isWinnerNegativeDiagonal[0]);
     }
 
@@ -140,7 +194,9 @@ public class ConnectFourService {
         for(int i=0;i<connectFourBoard[1].length-1;i++){
             if(connectFourBoard[rowPos][i] != '\u0000' && (connectFourBoard[rowPos][i] == connectFourBoard[rowPos][i+1])) numInARow++;
             else numInARow =1;
-            if(numInARow == 4) return true;
+            if(numInARow == 4){//todo get the current piece and get the positions of all the winning pieces.
+                return true;
+            }
         }
         return false;
     }
