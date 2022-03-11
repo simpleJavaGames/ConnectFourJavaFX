@@ -4,11 +4,14 @@ import ConnectFourService.ConnectFourService;
 import Exceptions.ColumnFullException;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.Glow;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -34,7 +37,7 @@ public class ConnectFourBoard {
     ConnectFourBoard(Scene scene){
         for(int i=0;i<NUMROW;i++){
             for(int j=0;j<NUMCOLUMN;j++){
-                StackPane cell = createCell(scene,i,j); //todo test
+                StackPane cell = createCell(scene,i,j);
                 connectFourBoard.add(cell,j,i);
                 connectFourBoardNodes[i][j] = cell;
 
@@ -44,11 +47,10 @@ public class ConnectFourBoard {
                     //temp variable to set the colPos
                     int colPos = j;
                     int rowPos = i; //we could set this to 0 to save time, but why bother, could lead to problems.
-                    //todo refactor so we see who wins, and what pieces allowed them to win and we're donne with implementation.
                     connectFourBoardNodes[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
                         @Override
                         public void handle(MouseEvent event) {
-                            if(event.getButton() == MouseButton.PRIMARY){
+                            if(event.getButton() == MouseButton.PRIMARY && connectFourService.getIsGameRunning()){
 
                                 //This thread makes it so that whenever a player places a piece, it sets the piece to green and then shows the next player's piece.
                                 new Thread(()->{
@@ -74,8 +76,18 @@ public class ConnectFourBoard {
                                     }else{
                                         connectFourBoardCircles[newPiece[0]][newPiece[1]].setFill(Color.RED);
                                     }
-                                    if(!connectFourService.getIsGameRunning()){
-                                        System.out.println("Game over.");
+
+                                    if(connectFourService.getHasWinningPos()){
+                                        int[][] posOfWinningPieces = connectFourService.getWinningPos();
+                                        for(int i=0;i< posOfWinningPieces.length;i++){
+                                            addGlowToPiece(posOfWinningPieces[i]);
+                                        }
+
+                                        if(connectFourService.getYellowWon()){
+                                            playYellowWins();
+                                        }else{
+                                            playRedWins();
+                                        }
                                     }
                                 }catch (ColumnFullException e){
                                     //we messed up, and we tried to put a piece in a column that was full!
@@ -90,8 +102,7 @@ public class ConnectFourBoard {
                     connectFourBoardNodes[rowPos][colPos].setOnMouseEntered(new EventHandler<MouseEvent>() {
                         @Override
                         public void handle(MouseEvent event) {
-                            //todo check if the spot is empty and if it is, hover a piece there to indicate where it's being dropped.
-                            if(!connectFourService.isColumnCompletelyFull(colPos)){ //if the column is not completely full, then show that piece.
+                            if(!connectFourService.isColumnCompletelyFull(colPos) && connectFourService.getIsGameRunning()){ //if the column is not completely full, then show that piece.
                                 if(connectFourService.isYellowTurn()){
                                     connectFourBoardCircles[rowPos][colPos].setFill(Color.YELLOW);
                                 }else{
@@ -138,7 +149,27 @@ public class ConnectFourBoard {
         return cell;
     }
 
+    /**
+     * Adds glow to specified piece.
+     */
+    private void addGlowToPiece(int[] coordinates){
+        Effect glow = new Glow(0.5);
+        connectFourBoardCircles[coordinates[0]][coordinates[1]].setEffect(glow);
+    }
 
+    /**
+     * Show the user that yellow won the game
+     */
+    private void playYellowWins(){
+        System.out.println("Yellow wins");
+    }
+
+    /**
+     * Show the user that red won the game.
+     */
+    private void playRedWins(){
+        System.out.println("Red wins!");
+    }
     /**
      * Get a pointer towards the connect-four board object.
      */

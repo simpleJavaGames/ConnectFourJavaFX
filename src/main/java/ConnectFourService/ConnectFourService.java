@@ -3,6 +3,7 @@ package ConnectFourService;
 import Exceptions.ColumnFullException;
 
 public class ConnectFourService {
+    final int NUM_THREADS = Runtime.getRuntime().availableProcessors();
     //todo clean up the back-end.
     //todo make it so that the winner check actually works.
     private char[][] connectFourBoard = new char[6][7];
@@ -10,12 +11,19 @@ public class ConnectFourService {
     private boolean isGameRunning;
     private int numPiecesOut = 0;
 
+    private int[][] winningPos; //there will be 4 coordinates that will be stored here, these coordinates are the winning positions.
+    private boolean hasWinningPos;
+    private boolean yellowWon;
+
     /**
      * Default constructor that sets the initial player turn to yellow.
      */
     public ConnectFourService(){
         yellowTurn = true;
         isGameRunning = true;
+        winningPos = null;
+        hasWinningPos = false;
+        yellowWon = false;
     }
 
     /**
@@ -24,6 +32,9 @@ public class ConnectFourService {
     public ConnectFourService(boolean yellowTurn){
         this.yellowTurn = yellowTurn;
         isGameRunning = true;
+        winningPos = null;
+        hasWinningPos = false;
+        yellowWon = false;
     }
 
     /**
@@ -82,10 +93,18 @@ public class ConnectFourService {
     public int[] dropPiece(int colPos) throws ColumnFullException{
 
         int nextAvailableRow = nextAvailableRow(colPos);
-        putPiece(nextAvailableRow,colPos); //This method can throw a columnFullException.
-        if(isWinnerMultiThread(nextAvailableRow,colPos)){// if we have a winner, return true, else continue on.
-            isGameRunning = false;
-        }else if(isCompletelyFull()){
+        putPiece(nextAvailableRow,colPos); //This method can throw a columnFullException if the column is full.
+        if(NUM_THREADS >= 4){// if we have a winner, return true, else continue on.
+            if(isWinnerMultiThread(nextAvailableRow,colPos)){
+                isGameRunning = false;
+            }
+        }else{
+            if(isWinnerNotMultiThread(nextAvailableRow,colPos)){
+                isGameRunning = false;
+            }
+        }
+
+        if(isCompletelyFull()){
             //if the board is full, end the game, else continue.
             isGameRunning = false;
         }
@@ -135,7 +154,7 @@ public class ConnectFourService {
      * This multithreaded method calls all the other smaller methods to check to see if there is a winner.
      * Returns true is there is a winner, else false.
      */
-    //todo test this to make sure that it functions properly.
+    //todo test this to make sure that it functions properly. Write a unit test for this to ensure it picks the right winner.
     public boolean isWinnerMultiThread(int rowPos, int colPos){
         final boolean[] isWinnerHorizontal = new boolean[1];
         Thread horizontal = new Thread(() -> isWinnerHorizontal[0] = isWinnerHorizontal(rowPos));
@@ -194,7 +213,10 @@ public class ConnectFourService {
         for(int i=0;i<connectFourBoard[1].length-1;i++){
             if(connectFourBoard[rowPos][i] != '\u0000' && (connectFourBoard[rowPos][i] == connectFourBoard[rowPos][i+1])) numInARow++;
             else numInARow =1;
-            if(numInARow == 4){//todo get the current piece and get the positions of all the winning pieces.
+            if(numInARow == 4){
+                hasWinningPos = true;
+                winningPos = new int[][]{{rowPos,i-2},{rowPos,i-1},{rowPos,i},{rowPos,i+1}}; //save the coordinates of the winning pieces.
+                yellowWon = (connectFourBoard[rowPos][i] == 'Y');//if the 4 pieces in a row are yellow, then yellow won, else red won.
                 return true;
             }
         }
@@ -208,9 +230,14 @@ public class ConnectFourService {
     private boolean isWinnerVertical(int colPos){
         int numInARow = 1;
         for(int j=0;j< connectFourBoard.length-1;j++){
-            if(connectFourBoard[j][colPos] != '\u0000' && (connectFourBoard[j][colPos] == connectFourBoard[j+1][colPos])) numInARow++;
-            else numInARow =1;
-            if(numInARow == 4) return true;
+            if(connectFourBoard[j][colPos] != '\u0000' && (connectFourBoard[j][colPos] == connectFourBoard[j+1][colPos])) numInARow++; //if the piece is the same as the next one, increment numInARow
+            else numInARow =1;//otherwise, reset the numInARow
+            if(numInARow == 4){
+                hasWinningPos = true;
+                winningPos = new int[][]{{j-2,colPos},{j-1,colPos},{j,colPos},{j+1,colPos}}; //we have a winner, so lets get the positions of them and save them.
+                yellowWon = (connectFourBoard[j][colPos] == 'Y');//if the 4 pieces in a row are yellow, then yellow won, else red won.
+                return true;
+            }
         }
         return false;
     }
@@ -235,7 +262,12 @@ public class ConnectFourService {
         while(currentColPos<(connectFourBoard[1].length-1) && currentRowPos > 0){
             if(connectFourBoard[currentRowPos][currentColPos] != '\u0000' && (connectFourBoard[currentRowPos][currentColPos] == connectFourBoard[currentRowPos-1][currentColPos+1])) numInARow++;
             else numInARow =1;
-            if(numInARow == 4) return true;
+            if(numInARow == 4){
+                hasWinningPos = true;
+                winningPos = new int[][]{{currentRowPos+2,currentColPos-2},{currentRowPos+1,currentColPos-1},{currentRowPos,currentColPos},{currentRowPos-1,currentColPos+1}};
+                yellowWon = (connectFourBoard[currentRowPos][currentColPos] == 'Y');//if the 4 pieces in a row are yellow, then yellow won, else red won.
+                return true;
+            }
             currentColPos++;
             currentRowPos--;
         }
@@ -244,10 +276,16 @@ public class ConnectFourService {
         currentColPos = colPos;
         numInARow =1;
         //down and to the left.
+        //todo figure out why i need 2 loops here.
         while(currentColPos > 0 && currentRowPos < connectFourBoard.length-1){
             if(connectFourBoard[currentRowPos][currentColPos] != '\u0000' && (connectFourBoard[currentRowPos][currentColPos] == connectFourBoard[currentRowPos+1][currentColPos-1])) numInARow++;
             else numInARow =1;
-            if(numInARow == 4) return true;
+            if(numInARow == 4){
+                hasWinningPos = true;
+                winningPos = new int[][]{{currentRowPos-2,currentColPos+2},{currentRowPos-1,currentColPos+1},{currentRowPos,currentColPos},{currentRowPos+1,currentColPos-1}};
+                yellowWon = (connectFourBoard[currentRowPos][currentColPos] == 'Y');//if the 4 pieces in a row are yellow, then yellow won, else red won.
+                return true;
+            }
             currentColPos--;
             currentRowPos++;
         }
@@ -268,7 +306,12 @@ public class ConnectFourService {
         while(currentRowPos > 0 && currentColPos > 0){
             if(connectFourBoard[currentRowPos][currentColPos] != '\u0000' && (connectFourBoard[currentRowPos][currentColPos] == connectFourBoard[currentRowPos-1][currentColPos-1])) numInARow++;
             else numInARow =1;
-            if(numInARow == 4) return true;
+            if(numInARow == 4){
+                hasWinningPos = true;
+                winningPos = new int[][]{{currentRowPos+2,currentColPos+2},{currentRowPos+1,currentColPos+1},{currentRowPos,currentColPos},{currentRowPos-1,currentColPos-1}};
+                yellowWon = (connectFourBoard[currentRowPos][currentColPos] == 'Y');//if the 4 pieces in a row are yellow, then yellow won, else red won.
+                return true;
+            }
             currentColPos--;
             currentRowPos--;
         }
@@ -281,7 +324,12 @@ public class ConnectFourService {
         while(currentRowPos < connectFourBoard.length-1 && currentColPos < connectFourBoard[1].length-1){
             if(connectFourBoard[currentRowPos][currentColPos] != '\u0000' && (connectFourBoard[currentRowPos][currentColPos] == connectFourBoard[currentRowPos+1][currentColPos+1])) numInARow++;
             else numInARow =1;
-            if(numInARow == 4) return true;
+            if(numInARow == 4){
+                hasWinningPos = true;
+                winningPos = new int[][]{{currentRowPos-2,currentColPos-2},{currentRowPos-1,currentColPos-1},{currentRowPos,currentColPos},{currentRowPos+1,currentColPos+1}};
+                yellowWon = (connectFourBoard[currentRowPos][currentColPos] == 'Y');//if the 4 pieces in a row are yellow, then yellow won, else red won.
+                return true;
+            }
             currentColPos++;
             currentRowPos++;
         }
@@ -290,10 +338,31 @@ public class ConnectFourService {
     }
 
     /**
+     * Get if there is a winning position.
+     */
+    public boolean getHasWinningPos(){
+        return hasWinningPos;
+    }
+
+    /**
+     * Get the winning position as a 2d Array.
+     */
+    public int[][] getWinningPos(){
+        return winningPos;
+    }
+
+    /**
      * Get the connectFourBoard object.
      */
     public char[][] getConnectFourBoard() {
         return connectFourBoard;
+    }
+
+    /**
+     * Get if yellow won the game.
+     */
+    public boolean getYellowWon() {
+        return yellowWon;
     }
 
 }
