@@ -16,11 +16,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.stage.Stage;
 
 
 public class ConnectFourBoard {
 
     private final ConnectFourService connectFourService = new ConnectFourService();
+    private Scene scene; //pointer to scene so we can quickly add things to it.
 
 
     private final GridPane connectFourBoard = new GridPane();//final since we're not changing its pointer.
@@ -35,9 +37,10 @@ public class ConnectFourBoard {
      * initializing all the cells in the connect-four board, and then setting its alignment to centered.
      */
     ConnectFourBoard(Scene scene){
+        this.scene = scene;
         for(int i=0;i<NUMROW;i++){
             for(int j=0;j<NUMCOLUMN;j++){
-                StackPane cell = createCell(scene,i,j);
+                StackPane cell = createCell(i,j);
                 connectFourBoard.add(cell,j,i);
                 connectFourBoardNodes[i][j] = cell;
 
@@ -130,7 +133,7 @@ public class ConnectFourBoard {
     /**
      * Creates a StackPane "cell" for each connect four board spot and returns it.
      */
-    private StackPane createCell(Scene scene,int rowPos,int colPos){
+    private StackPane createCell(int rowPos,int colPos){
         StackPane cell = new StackPane();
         Circle piece = new Circle();
 
@@ -162,6 +165,7 @@ public class ConnectFourBoard {
      */
     private void playYellowWins(){
         System.out.println("Yellow wins");
+        //todo add yellowWins graphic here.
     }
 
     /**
@@ -169,6 +173,8 @@ public class ConnectFourBoard {
      */
     private void playRedWins(){
         System.out.println("Red wins!");
+        //todo add redWins graphic here.
+
     }
     /**
      * Get a pointer towards the connect-four board object.
